@@ -1,0 +1,313 @@
+# =============================================================================
+# multivariate linear regression
+# =============================================================================
+import os
+print(os.getcwd())
+os.chdir("C:\\Users\\User\\Downloads")
+#step1- clear business understanding
+#step2- data gathering from different sources
+#create a single data set
+#step3- get the data into working environment
+#step3.1- import required packages 
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import statsmodels.api as sm
+from sklearn import datasets ## imports datasets from scikit-learn
+
+#step3.2- read data from source
+# best practice to set the working directory before we process the data.
+# =============================================================================
+#to change categories to numeric 
+# data=pd.read_csv("Regression-Clean-Data.csv",index_col=0)
+#x=data.iloc[:,:].values
+#z=pd.DataFrame(x)
+#from sklearn.preprocessing import LabelEncoder
+#labelencoder_x=LabelEncoder()
+#x[:,6]=labelencoder_x.fit_transform(x[:,6])
+#z=pd.DataFrame(x)
+# =============================================================================
+data=pd.read_csv("Regression-Clean-Data (1).csv")
+import missingno as msno
+
+msno.bar(data)
+
+# =============================================================================
+#finding the outliers using standard deviation
+#from scipy import stats 
+#from statistics import variance,stdev
+#mean=np.mean(data, axis=0)
+#stdev = np.std(data, axis=0)
+#print(mean)
+#print(stdev)
+#plt.plot(stdev)
+
+
+#dt_std=stdev(data)
+#print("simple std.dev:",round(dt_std,2))
+
+
+
+# #isnull() for checking missing values
+data.isnull()
+df=data.isnull()
+print (data.isnull())
+data.isnull().any()
+data.isnull().sum()
+data.info() 
+plt.plot(data.isnull())
+plt.show()
+# =============================================================================
+
+# =============================================================================
+# #method 1 seaborn.heatmap
+#sns.heatmap(data.isnull(), cbar=False)
+# =============================================================================
+
+# =============================================================================
+# #Method 2: missingno module 
+#pip install missingno
+#import missingno as msno
+#msno.matrix(data)
+#msno.heatmap(data)
+# =============================================================================
+
+#step4- sanity check
+data.head()
+sanitychecks=data.describe().T
+print(sanitychecks)
+data.describe().T.to_csv("sanitychecks.csv")
+
+#1- shape of the data
+#2- mising values
+# from describe or is. null...
+#3- missing imputations
+#4- outlier checking
+# from box plots, graphs, from descriptive stats
+
+# data distribution plot
+#sns.pairplot(data)
+sns.distplot(data['House_Price'])
+
+#sns.distplot(data['Dist_Taxi'])
+#sns.distplot(data['Dist_Market'])
+
+#sns.distplot(data['Dist_Taxi'],data['Dist_Market'],data['Dist_Hospital'],data['Carpet'],data['Builtup'],data['Parking'],data['Rainfall'], data['City_Category'])
+#sns.distplot(data['Dist_Taxi','Dist_Market','Dist_Hospital','Carpet','Builtup','Parking','Rainfall','City_Category'])
+
+#correlation 
+sns.heatmap(data.corr()) 
+#to run the correlation
+
+#data.corr().to_csv("CORR.csv")
+#print(data.corr)
+#step5- EDA
+#to gain more understanding about data
+#lot of cross tabs, graphs, charts...
+
+#step5.1- feature engineering & feature selection
+
+#step6- sampling
+#splitting x and y into traning and testing sets
+
+list(data)
+np.shape(data)
+y=data['House_Price']
+list(y)
+np.shape(y)
+x=data.drop(['House_Price','Observation','Carpet','Rainfall'], axis=1)
+list(x) 
+np.shape(x)
+model = sm.OLS(y,x).fit()
+predictions = model.predict(x) # make the predictions by the model
+
+# Print out the statistics
+model.summary()
+
+
+
+from sklearn.model_selection import train_test_split
+x_train, x_test, y_train, y_test=train_test_split(x,y,test_size=0.4,random_state=1)
+
+np.shape(x_train)
+np.shape(x_test)
+np.shape(y_test)
+np.shape(y_train)
+
+#step7- model building-train set
+#creating and training the model
+
+from sklearn.linear_model import LinearRegression
+lm=LinearRegression()
+
+lm.fit(x_train,y_train)
+
+#predictions from our model
+#let's grab predictions off our train set and see how well it did!
+y_pred=lm.predict(x_train)
+
+#evaluate model
+#calculate R2 value
+from sklearn.metrics import r2_score
+
+r2_score(y_train,y_pred)
+print(round(r2_score(y_train,y_pred)*100,2),'%')
+
+#calculate root-mean-square error (RMSE)
+import numpy as np
+from sklearn.metrics import mean_squared_error
+
+lin_mse=mean_squared_error(y_pred,y_train)
+lin_rmse=np.sqrt(lin_mse)
+print('Linear Regression RMSE: %.4f' % lin_rmse)
+
+#predictions from our model
+#let's grab predictions off our test and see how well it did!
+y_pred_t=lm.predict(x_test)
+
+#calculate R2 value
+from sklearn.metrics import r2_score
+
+r2_score(y_test,y_pred_t)
+print(round(r2_score(y_test,y_pred_t)*100,2),'%')
+
+#calculate root-mean-square error(RMSE)
+import numpy as np
+from sklearn.metrics import mean_squared_error
+
+lin_mse=mean_squared_error(y_pred_t,y_test)
+lin_rmse=np.sqrt(lin_mse)
+print('Linear Regression RMSE: %.4f' % lin_rmse)
+
+#print the intercept and coefficients
+print(lm.intercept_)
+print(lm.coef_)
+
+#plot for residual error
+
+##setting plot style
+plt.style.use('fivethirtyeight')
+
+##plotting residual errors in training data
+plt.scatter(lm.predict(x_train),lm.predict(x_train)-y_train, color="green", s=10, label='Train data')
+
+##plotting residual errors for train data
+plt.scatter(lm.predict(x_test), lm.predict(x_test)-y_test, color="blue",s=10, label='Test data')
+
+##plotting line for zero residual error
+plt.hlines(y=0, xmin=0, xmax=50, linewidth=2)
+
+##plotting legend
+plt.legend(loc='upper right')
+
+##plot title
+plt.title("Residual errors")
+
+##function to show plot
+#plt.savefig("output\\image1.jpeg")
+plt.show()
+
+list(data)
+
+#Linearity (y=b0=b1x1=b2x2=...=bnxn=E)
+#constant variance (homoscadesticity= x incr ~ E incr)
+#independent error terms (auto correlation, sanity check/curvy plot)
+#normal errors (bell shaped curve/NQQ)
+#no multi-colinearity(x variables are indep)
+
+# =============================================================================
+# linearity - residual plot
+# =============================================================================
+
+resid= y_train-y_pred
+#normal Quantile-Quantile plot
+import numpy as np 
+import pylab
+import scipy.stats as stats
+
+stats.probplot(resid,dist="norm", plot=pylab)
+pylab.show()
+
+# =============================================================================
+# constant variance variance(homoscadesticity)
+# =============================================================================
+#using residual plot
+import seaborn
+import matplotlib.pyplot as plt
+w=6; h=4; d=70
+plt.figure(figsize=(w,h),dpi=d)
+seaborn.residplot(lm.predict(x_train), lm.predict(x_train)-y_train)
+plt.savefig("out1.png")
+
+resid=y_pred-y_train
+resid=pd.Series(resid)
+plt.scatter(y_pred,resid)
+plt.hlines(0,0,897)
+
+plt.scatter(y_pred,y_pred)
+
+# =============================================================================
+# independent of errors (auto correlation)
+# =============================================================================
+plt.scatter(resid.index,resid.values)
+plt.hlines(0,0,897)
+
+from statsmodels.stats.stattools import durbin_watson
+durbin_watson(resid)
+
+# =============================================================================
+# normal error (bell shaped curve/ NQQ)
+# =============================================================================
+# histogram
+plt.hist(resid, bins='auto', color='green', alpha=0.7, rwidth=0.85)
+plt.xlabel('value')
+plt.ylabel('frequency')
+plt.title('histogram')
+
+# =============================================================================
+# no multi-collinearity(x variables are indep-VIF)
+# =============================================================================
+from sklearn.metrics import r2_score
+#VIF=1/1-r2
+VIF=1/(1-r2_score(y_train,y_pred))
+print(VIF)
+
+#from statsmodels.stats.outliers_influence import variance_inflation_factor
+#vif = pd.DataFrame()
+#vif["VIF Factor"] = [variance_inflation_factor(X_train.values, i) for i in range(X_train.shape[1])]
+#vif["features"] = X.columns
+
+# =============================================================================
+# AIC and BIC
+# =============================================================================
+import math
+
+#AIC= 2k - 2ln(sse) (k= # of variables)
+sse = sum(resid**2)
+AIC= 2*9 - 2*(math.log(sse))
+print(AIC)
+
+#BIC = n*ln(sse/n) + k*ln(n) (k= # of variables,n = # of observations)
+sse = sum(resid**2)
+BIC = 897*math.log(sse/897)+9*math.log(897)
+print(BIC)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
