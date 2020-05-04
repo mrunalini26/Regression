@@ -18,7 +18,6 @@ import statsmodels.api as sm
 from sklearn import datasets ## imports datasets from scikit-learn
 
 #step3.2- read data from source
-# best practice to set the working directory before we process the data.
 # =============================================================================
 #to change categories to numeric 
 # data=pd.read_csv("Regression-Clean-Data.csv",index_col=0)
